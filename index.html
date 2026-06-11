@@ -24,17 +24,13 @@
   .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.85}
   header h1{margin:2px 0 0;font-size:clamp(30px,6vw,44px);text-transform:uppercase;line-height:1.05}
   .headmeta{display:flex;gap:12px;align-items:center;margin-top:10px;font-size:12.5px;opacity:.92;flex-wrap:wrap}
-  #refreshBtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.45);color:#fff;
-    border-radius:999px;padding:4px 14px;font:inherit;font-size:12.5px;cursor:pointer}
-  #refreshBtn:hover{background:rgba(255,255,255,.26)}
-
   /* Tabs */
   nav{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
   .tabs{display:flex;max-width:880px;margin:0 auto}
   .tab{flex:1;border:0;background:none;font:inherit;font-weight:600;color:var(--muted);
        padding:12px 4px 10px;cursor:pointer;border-bottom:3px solid transparent}
   .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--red)}
-  .tab:focus-visible,#refreshBtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
   main{max-width:880px;margin:0 auto;padding:18px 14px 60px}
   .hidden{display:none}
@@ -128,7 +124,6 @@
     <h1 class="display">The World Cup Pool</h1>
     <div class="headmeta">
       <span id="updated">Loading&hellip;</span>
-      <button id="refreshBtn" type="button">Refresh now</button>
     </div>
   </div>
 </header>
@@ -214,6 +209,7 @@ const ownerOf = (apiName)=>OWNERS[ourName(apiName)] || null;
 
 let crests = {};   // ourName -> crest url
 let timer = null;
+let countdown = null;
 
 document.querySelectorAll(".tab").forEach(btn=>{
   btn.addEventListener("click", ()=>{
@@ -221,7 +217,6 @@ document.querySelectorAll(".tab").forEach(btn=>{
     document.querySelectorAll("[role=tabpanel]").forEach(p=>p.classList.toggle("hidden", p.id!==btn.dataset.panel));
   });
 });
-$("#refreshBtn").addEventListener("click", load);
 
 const STAGE_LABEL = {LAST_32:"Round of 32 · 3 pts", LAST_16:"Round of 16 · 6 pts",
   QUARTER_FINALS:"Quarterfinal · 9 pts", SEMI_FINALS:"Semifinal · 12 pts",
@@ -286,8 +281,10 @@ async function getJSON(path){
 }
 
 async function load(){
+  clearInterval(countdown);
   if (!CONFIG.WORKER_URL){ $("#setupNotice").classList.remove("hidden"); $("#updated").textContent="Not connected"; return; }
   $("#setupNotice").classList.add("hidden");
+  $("#updated").textContent = "Refreshing…";
   try{
     const [matchData, standData] = await Promise.all([getJSON("/matches"), getJSON("/standings")]);
     const matches = (matchData.matches||[]);
@@ -302,8 +299,17 @@ async function load(){
     renderBracket(matches);
     setPhase(matches);
     $("#errNotice").classList.add("hidden");
-    $("#updated").textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+    const base = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+    let secsLeft = CONFIG.REFRESH_SECONDS;
+    const fmt = (s) => `${s}s`;
+    $("#updated").textContent = `${base} · refreshing in ${fmt(secsLeft)}`;
+    countdown = setInterval(()=>{
+      secsLeft--;
+      if (secsLeft <= 0){ clearInterval(countdown); $("#updated").textContent = "Refreshing…"; return; }
+      $("#updated").textContent = `${base} · refreshing in ${fmt(secsLeft)}`;
+    }, 1000);
   }catch(e){
+    clearInterval(countdown);
     $("#errNotice").textContent = "Couldn't load data (" + e.message + "). Check that the Worker URL is right and the Worker is deployed. Retrying automatically.";
     $("#errNotice").classList.remove("hidden");
     $("#updated").textContent = "Connection problem";
