@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The World Cup Pool</title>
+<title>World Cup 2026 Pool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -97,26 +97,6 @@
   td.tcol img{width:16px;height:16px;object-fit:contain}
   tr.q td{background:#F3F8F1}
   td .owner{margin-left:2px}
-
-  /* Bracket */
-  .bracket{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch}
-  .bcol{flex:0 0 232px;display:flex;flex-direction:column}
-  .bcol h3{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
-           margin:0 0 8px;text-align:center;font-weight:700}
-  .bmatches{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:10px}
-  .bm{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px}
-  .bm.live{border-color:var(--pitch);box-shadow:0 0 0 1px var(--pitch)}
-  .brow{display:flex;align-items:center;gap:6px;padding:2px 0;min-width:0}
-  .brow img{width:16px;height:16px;object-fit:contain;flex:none}
-  .brow .bn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .brow.winner .bn{font-weight:700}
-  .brow.loser{color:var(--muted)}
-  .brow .bscore{margin-left:auto;font-weight:700}
-  .brow.tbd{color:var(--muted);font-style:italic}
-  .bmeta{font-size:10.5px;color:var(--muted);margin-top:5px;border-top:1px dashed var(--line);
-         padding-top:5px;display:flex;justify-content:space-between;gap:8px}
-  .bmeta .blive{color:var(--pitch);font-weight:700;text-transform:uppercase;letter-spacing:.1em}
-  .bronze{margin-top:18px;max-width:260px}
   footer{max-width:880px;margin:0 auto;padding:0 14px 40px;font-size:12px;color:var(--muted)}
 </style>
 </head>
@@ -124,8 +104,8 @@
 
 <header>
   <div class="wrap">
-    <div class="eyebrow">World Cup 2026 &middot; 8 managers &middot; 48 teams &middot; <span id="phase">&hellip;</span></div>
-    <h1 class="display">The World Cup Pool</h1>
+    <div class="eyebrow">8 managers &middot; 48 teams</div>
+    <h1 class="display">World Cup 2026 Pool</h1>
     <div class="headmeta">
       <span id="updated">Loading&hellip;</span>
       <button id="refreshBtn" type="button">Refresh now</button>
@@ -137,7 +117,6 @@
   <button class="tab" role="tab" aria-selected="true" data-panel="panel-lb">Leaderboard</button>
   <button class="tab" role="tab" aria-selected="false" data-panel="panel-matches">Matches</button>
   <button class="tab" role="tab" aria-selected="false" data-panel="panel-groups">Groups</button>
-  <button class="tab" role="tab" aria-selected="false" data-panel="panel-bracket">Bracket</button>
 </div></nav>
 
 <main>
@@ -150,7 +129,6 @@
   <section id="panel-lb" role="tabpanel"></section>
   <section id="panel-matches" role="tabpanel" class="hidden"></section>
   <section id="panel-groups" role="tabpanel" class="hidden"></section>
-  <section id="panel-bracket" role="tabpanel" class="hidden"></section>
 </main>
 
 <footer>Scoring: group stage 3/win &middot; 1/draw &mdash; knockouts 3 (R32), 6 (R16), 9 (QF), 12 (SF), 15 (Final). Extra-time and penalty wins count.
@@ -159,7 +137,7 @@ Times shown in your local timezone. Data via football-data.org, refreshed about 
 <script>
 /* ============================ CONFIG ============================ */
 const CONFIG = {
-  WORKER_URL: "",            // e.g. "https://wc-pool.yourname.workers.dev"  (no trailing slash)
+  WORKER_URL: "https://wc-pool.french11728.workers.dev",            // e.g. "https://wc-pool.yourname.workers.dev"  (no trailing slash)
   REFRESH_SECONDS: 90,
   // Points awarded to a team's owner, by stage. Knockout games always produce a
   // winner (extra time / penalties count as a win). Draws only exist in the group stage.
@@ -227,58 +205,6 @@ const STAGE_LABEL = {LAST_32:"Round of 32 · 3 pts", LAST_16:"Round of 16 · 6 p
   QUARTER_FINALS:"Quarterfinal · 9 pts", SEMI_FINALS:"Semifinal · 12 pts",
   THIRD_PLACE:"Third place", FINAL:"Final · 15 pts"};
 
-const KO_ORDER = ["LAST_32","LAST_16","QUARTER_FINALS","SEMI_FINALS","FINAL"];
-const PHASE_LABEL = {GROUP_STAGE:"Group stage", LAST_32:"Round of 32", LAST_16:"Round of 16",
-  QUARTER_FINALS:"Quarterfinals", SEMI_FINALS:"Semifinals", THIRD_PLACE:"Third place", FINAL:"The Final"};
-
-function setPhase(matches){
-  for (const st of ["GROUP_STAGE",...KO_ORDER.slice(0,4),"THIRD_PLACE","FINAL"]){
-    if (matches.some(m=>m.stage===st && m.status!=="FINISHED")){
-      $("#phase").textContent = PHASE_LABEL[st]; return;
-    }
-  }
-  $("#phase").textContent = matches.length ? "Tournament complete" : "";
-}
-
-function bracketCard(m){
-  const live = LIVE.has(m.status), done = m.status==="FINISHED";
-  const row = (t, side)=>{
-    if (!t || !t.name) return `<div class="brow tbd"><span class="bn">To be decided</span></div>`;
-    const name = ourName(t.name), o = ownerOf(t.name);
-    const won = done && m.score?.winner === (side==="h" ? "HOME_TEAM" : "AWAY_TEAM");
-    const lost = done && !won && m.score?.winner !== "DRAW";
-    const sc = (live||done) ? `<span class="bscore num">${m.score?.fullTime?.[side==="h"?"home":"away"] ?? 0}</span>` : "";
-    return `<div class="brow ${won?"winner":""} ${lost?"loser":""}">${crestImg(name,16)}
-      <span class="bn">${name}${o?` <span class="owner">${o}</span>`:""}</span>${sc}</div>`;
-  };
-  const when = new Date(m.utcDate).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-  const meta = live ? `<span class="blive">Live</span><span>${when}</span>`
-             : done ? `<span>Full time${m.score?.duration==="PENALTY_SHOOTOUT"?" (pens)":m.score?.duration==="EXTRA_TIME"?" (aet)":""}</span>`
-             : `<span class="num">${when}</span>`;
-  return `<div class="bm ${live?"live":""}">${row(m.homeTeam,"h")}${row(m.awayTeam,"a")}
-    <div class="bmeta">${meta}</div></div>`;
-}
-
-function renderBracket(matches){
-  const ko = matches.filter(m=>KO_ORDER.includes(m.stage) || m.stage==="THIRD_PLACE")
-                    .sort((a,b)=> new Date(a.utcDate)-new Date(b.utcDate));
-  if (!ko.length){
-    $("#panel-bracket").innerHTML = `<p class="muted">The bracket appears once the knockout
-      fixtures are in the schedule — slots fill in automatically as the group stage wraps up.</p>`;
-    return;
-  }
-  const cols = KO_ORDER.map(st=>{
-    const ms = ko.filter(m=>m.stage===st);
-    return ms.length ? `<div class="bcol"><h3>${STAGE_LABEL[st]}</h3>
-      <div class="bmatches">${ms.map(bracketCard).join("")}</div></div>` : "";
-  }).join("");
-  const bronze = ko.filter(m=>m.stage==="THIRD_PLACE").map(bracketCard).join("");
-  $("#panel-bracket").innerHTML = `<div class="bracket">${cols}</div>` +
-    (bronze ? `<div class="bronze"><h2 class="section">Third place match</h2>${bronze}</div>` : "") +
-    `<p class="muted" style="margin-top:10px">Matchups fill in as each round is decided. Cards are
-     ordered by kickoff within each round. Swipe sideways to follow the path to the final.</p>`;
-}
-
 async function getJSON(path){
   const r = await fetch(CONFIG.WORKER_URL + path);
   if (!r.ok) throw new Error(`${path} returned ${r.status}`);
@@ -299,8 +225,6 @@ async function load(){
     renderLeaderboard(matches);
     renderMatches(matches);
     renderGroups(standData.standings||[]);
-    renderBracket(matches);
-    setPhase(matches);
     $("#errNotice").classList.add("hidden");
     $("#updated").textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
   }catch(e){
