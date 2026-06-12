@@ -376,13 +376,16 @@ function renderLeaderboard(matches, standings){
 
   const ranked = Object.values(people).sort((x,y)=> y.pts-x.pts || y.w-x.w || x.name.localeCompare(y.name));
   const top = ranked[0]?.pts || 0;
+  let displayRank = 1;
   $("#panel-lb").innerHTML = ranked.map((p,i)=>{
+    if (i > 0 && p.pts < ranked[i-1].pts) displayRank = i + 1;
+    const rank = displayRank;
     const leader = p.pts===top && top>0;
     const chips = Object.entries(p.teams).map(([t,r])=>
       `<span class="chip ${r.live?"playing":""}">${crestImg(t,18)}${t}
         <span class="cpts num">${r.pts}</span><span class="muted num">${r.w}-${r.d}-${r.l}</span></span>`).join("");
     return `<div class="lb-card ${leader?"leader":""}">
-      <div class="lb-rank display num">${i+1}</div>
+      <div class="lb-rank display num">${rank}</div>
       <div><div class="lb-name display">${p.name}</div>
         <div class="lb-record num">${p.w} W &middot; ${p.d} D &middot; ${p.l} L</div></div>
       <div class="lb-pts"><div class="pts display num">${p.pts}</div><div class="lbl">pts</div></div>
