@@ -811,6 +811,23 @@
         if (LIVE.has(m.status)) {
           if (OWNERS[h]) people[OWNERS[h]].teams[h].live = true;
           if (OWNERS[a]) people[OWNERS[a]].teams[a].live = true;
+          // Standings counts in-progress matches as provisional results — undo that
+          if (m.stage === "GROUP_STAGE") {
+            const winner = m.score?.winner;
+            const undo = (team, res) => {
+              const o = OWNERS[team]; if (!o) return;
+              const rec = people[o].teams[team];
+              rec[res] = Math.max(0, rec[res] - 1);
+              people[o][res] = Math.max(0, people[o][res] - 1);
+              const pts = res === "w" ? (CONFIG.SCORING.GROUP_STAGE.win || 0)
+                        : res === "d" ? (CONFIG.SCORING.GROUP_STAGE.draw || 0) : 0;
+              rec.pts = Math.max(0, rec.pts - pts);
+              people[o].pts = Math.max(0, people[o].pts - pts);
+            };
+            if (winner === "DRAW")           { undo(h, "d"); undo(a, "d"); }
+            else if (winner === "HOME_TEAM") { undo(h, "w"); undo(a, "l"); }
+            else if (winner === "AWAY_TEAM") { undo(a, "w"); undo(h, "l"); }
+          }
         }
         if (m.stage === "GROUP_STAGE" || m.status !== "FINISHED") continue;
         const winner = m.score?.winner;
