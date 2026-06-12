@@ -1,463 +1,916 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The World Cup Pool</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F2F0EA; --panel:#FFFFFF; --ink:#191A1C; --muted:#6B6A63;
-    --red:#C8102E; --pitch:#0E7A3D; --foil:#C9A227; --line:#E3DFD4;
-    --radius:10px;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);
-       font-family:"Inter Tight",system-ui,sans-serif;font-size:15px;line-height:1.45}
-  .display{font-family:"Anton",sans-serif;letter-spacing:.02em;font-weight:400}
-  .num{font-variant-numeric:tabular-nums}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The World Cup Pool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter+Tight:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F2F0EA;
+      --panel: #FFFFFF;
+      --ink: #191A1C;
+      --muted: #6B6A63;
+      --red: #C8102E;
+      --pitch: #0E7A3D;
+      --foil: #C9A227;
+      --line: #E3DFD4;
+      --radius: 10px;
+    }
 
-  /* Header band */
-  header{background:var(--red);color:#fff;padding:22px 16px 18px}
-  .wrap{max-width:880px;margin:0 auto}
-  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.85}
-  header h1{margin:2px 0 0;font-size:clamp(30px,6vw,44px);text-transform:uppercase;line-height:1.05}
-  .headmeta{display:flex;gap:12px;align-items:center;margin-top:10px;font-size:12.5px;opacity:.92;flex-wrap:wrap}
-  /* Tabs */
-  nav{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
-  .tabs{display:flex;max-width:880px;margin:0 auto}
-  .tab{flex:1;border:0;background:none;font:inherit;font-weight:600;color:var(--muted);
-       padding:12px 4px 10px;cursor:pointer;border-bottom:3px solid transparent}
-  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--red)}
-  .tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+    * {
+      box-sizing: border-box
+    }
 
-  main{max-width:880px;margin:0 auto;padding:18px 14px 60px}
-  .hidden{display:none}
-  .notice{background:#FFF6D9;border:1px solid #E7D48A;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
-  .notice code{background:#fff;padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
-  .muted{color:var(--muted)}
-  h2.section{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:26px 2px 10px}
-  h2.section:first-child{margin-top:6px}
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Inter Tight", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.45
+    }
 
-  /* Leaderboard — the sticker-album rows */
-  .lb-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:34px 1fr auto;gap:6px 12px;align-items:center}
-  .lb-card.leader{border-color:var(--foil);box-shadow:inset 4px 0 0 var(--foil)}
-  .lb-rank{font-size:24px;color:var(--muted)}
-  .lb-card.leader .lb-rank{color:var(--foil)}
-  .lb-name{font-size:19px;text-transform:uppercase}
-  .lb-record{font-size:12.5px;color:var(--muted);margin-top:1px}
-  .lb-pts{text-align:right}
-  .lb-pts .pts{font-size:30px;line-height:1}
-  .lb-pts .lbl{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-  .leader-tag{grid-column:2/4;font-size:10.5px;letter-spacing:.14em;color:var(--foil);text-transform:uppercase;font-weight:700}
-  .chips{grid-column:1/4;display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:10px;border-top:1px dashed var(--line)}
-  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;
-        padding:3px 10px 3px 4px;font-size:12px;background:var(--paper)}
-  .chip img{width:18px;height:18px;object-fit:contain;border-radius:50%;background:#fff}
-  .chip .cpts{font-weight:700}
-  .chip.playing{border-color:var(--pitch);box-shadow:0 0 0 1px var(--pitch)}
+    .display {
+      font-family: "Anton", sans-serif;
+      letter-spacing: .02em;
+      font-weight: 400
+    }
 
-  /* Matches */
-  .match{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:10px 14px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto 1fr;gap:4px 10px;align-items:center}
-  .team{display:flex;align-items:center;gap:8px;min-width:0}
-  .team.away{justify-content:flex-end;text-align:right}
-  .team img{width:24px;height:24px;object-fit:contain;flex:none}
-  .tname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .owner{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-  .score{font-size:22px;text-align:center;min-width:64px}
-  .ko{font-size:13px;color:var(--muted);text-align:center;min-width:64px}
-  .tags{grid-column:1/4;display:flex;gap:6px;justify-content:center;margin-top:2px}
-  .badge{font-size:10px;font-weight:700;letter-spacing:.14em;
-         text-transform:uppercase;border-radius:999px;padding:2px 10px}
-  .badge.live{background:var(--pitch);color:#fff}
-  .badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
-         background:#fff;margin-right:6px;animation:pulse 1.4s infinite}
-  @keyframes pulse{50%{opacity:.3}}
-  @media (prefers-reduced-motion: reduce){.badge.live::before{animation:none}}
-  .badge.ft{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
-  .datehead{font-weight:700;margin:20px 2px 8px;font-size:14px}
+    .num {
+      font-variant-numeric: tabular-nums
+    }
 
-  /* Groups */
-  .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
-  .gcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
-  .gcard h3{margin:0 0 8px;font-size:15px;text-transform:uppercase}
-  table{width:100%;border-collapse:collapse;font-size:12.5px}
-  th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
-     text-align:right;padding:2px 4px;border-bottom:1px solid var(--line)}
-  th.tcol{text-align:left}
-  td{padding:5px 4px;text-align:right;border-bottom:1px solid var(--paper)}
-  td.tcol{text-align:left;display:flex;align-items:center;gap:6px}
-  td.tcol img{width:16px;height:16px;object-fit:contain}
-  tr.q td{background:#F3F8F1}
-  td .owner{margin-left:2px}
+    /* Header band */
+    header {
+      background: var(--red);
+      color: #fff;
+      padding: 22px 16px 18px
+    }
 
-  /* Bracket */
-  .bracket{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch}
-  .bcol{flex:0 0 232px;display:flex;flex-direction:column}
-  .bcol h3{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
-           margin:0 0 8px;text-align:center;font-weight:700}
-  .bmatches{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:10px}
-  .bm{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px}
-  .bm.live{border-color:var(--pitch);box-shadow:0 0 0 1px var(--pitch)}
-  .brow{display:flex;align-items:center;gap:6px;padding:2px 0;min-width:0}
-  .brow img{width:16px;height:16px;object-fit:contain;flex:none}
-  .brow .bn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .brow.winner .bn{font-weight:700}
-  .brow.loser{color:var(--muted)}
-  .brow .bscore{margin-left:auto;font-weight:700}
-  .brow.tbd{color:var(--muted);font-style:italic}
-  .bmeta{font-size:10.5px;color:var(--muted);margin-top:5px;border-top:1px dashed var(--line);
-         padding-top:5px;display:flex;justify-content:space-between;gap:8px}
-  .bmeta .blive{color:var(--pitch);font-weight:700;text-transform:uppercase;letter-spacing:.1em}
-  .bronze{margin-top:18px;max-width:260px}
-  footer{max-width:880px;margin:0 auto;padding:0 14px 40px;font-size:12px;color:var(--muted)}
-</style>
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .85
+    }
+
+    header h1 {
+      margin: 2px 0 0;
+      font-size: clamp(30px, 6vw, 44px);
+      text-transform: uppercase;
+      line-height: 1.05
+    }
+
+    .headmeta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 12.5px;
+      opacity: .92;
+      flex-wrap: wrap
+    }
+
+    /* Tabs */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .tabs {
+      display: flex;
+      max-width: 880px;
+      margin: 0 auto
+    }
+
+    .tab {
+      flex: 1;
+      border: 0;
+      background: none;
+      font: inherit;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 12px 4px 10px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent
+    }
+
+    .tab[aria-selected="true"] {
+      color: var(--ink);
+      border-bottom-color: var(--red)
+    }
+
+    .tab:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px
+    }
+
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 18px 14px 60px
+    }
+
+    .hidden {
+      display: none
+    }
+
+    .notice {
+      background: #FFF6D9;
+      border: 1px solid #E7D48A;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 16px
+    }
+
+    .notice code {
+      background: #fff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--line)
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    h2.section {
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 26px 2px 10px
+    }
+
+    h2.section:first-child {
+      margin-top: 6px
+    }
+
+    /* Leaderboard — the sticker-album rows */
+    .lb-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 6px 12px;
+      align-items: center
+    }
+
+    .lb-card.leader {
+      border-color: var(--foil);
+      box-shadow: inset 4px 0 0 var(--foil)
+    }
+
+    .lb-rank {
+      font-size: 24px;
+      color: var(--muted)
+    }
+
+    .lb-card.leader .lb-rank {
+      color: var(--foil)
+    }
+
+    .lb-name {
+      font-size: 19px;
+      text-transform: uppercase
+    }
+
+    .lb-record {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 1px
+    }
+
+    .lb-pts {
+      text-align: right
+    }
+
+    .lb-pts .pts {
+      font-size: 30px;
+      line-height: 1
+    }
+
+    .lb-pts .lbl {
+      font-size: 10.5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    .leader-tag {
+      grid-column: 2/4;
+      font-size: 10.5px;
+      letter-spacing: .14em;
+      color: var(--foil);
+      text-transform: uppercase;
+      font-weight: 700
+    }
+
+    .chips {
+      grid-column: 1/4;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--line)
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 10px 3px 4px;
+      font-size: 12px;
+      background: var(--paper)
+    }
+
+    .chip img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: #fff
+    }
+
+    .chip .cpts {
+      font-weight: 700
+    }
+
+    .chip.playing {
+      border-color: var(--pitch);
+      box-shadow: 0 0 0 1px var(--pitch)
+    }
+
+    /* Matches */
+    .match {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 4px 10px;
+      align-items: center
+    }
+
+    .team {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0
+    }
+
+    .team.away {
+      justify-content: flex-end;
+      text-align: right
+    }
+
+    .team img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      flex: none
+    }
+
+    .tname {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .owner {
+      font-size: 10.5px;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-transform: uppercase
+    }
+
+    .score {
+      font-size: 22px;
+      text-align: center;
+      min-width: 64px
+    }
+
+    .ko {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      min-width: 64px
+    }
+
+    .tags {
+      grid-column: 1/4;
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 2px
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 2px 10px
+    }
+
+    .badge.live {
+      background: var(--pitch);
+      color: #fff
+    }
+
+    .badge.live::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      margin-right: 6px;
+      animation: pulse 1.4s infinite
+    }
+
+    @keyframes pulse {
+      50% {
+        opacity: .3
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .badge.live::before {
+        animation: none
+      }
+    }
+
+    .badge.ft {
+      background: var(--paper);
+      color: var(--muted);
+      border: 1px solid var(--line)
+    }
+
+    .datehead {
+      font-weight: 700;
+      margin: 20px 2px 8px;
+      font-size: 14px
+    }
+
+    /* Groups */
+    .groups {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 12px
+    }
+
+    .gcard {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px
+    }
+
+    .gcard h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      text-transform: uppercase
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px
+    }
+
+    th {
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: right;
+      padding: 2px 4px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    th.tcol {
+      text-align: left
+    }
+
+    td {
+      padding: 5px 4px;
+      text-align: right;
+      border-bottom: 1px solid var(--paper)
+    }
+
+    td.tcol {
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    td.tcol img {
+      width: 16px;
+      height: 16px;
+      object-fit: contain
+    }
+
+    tr.q td {
+      background: #F3F8F1
+    }
+
+    td .owner {
+      margin-left: 2px
+    }
+
+    /* Bracket */
+    .bracket {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      -webkit-overflow-scrolling: touch
+    }
+
+    .bcol {
+      flex: 0 0 232px;
+      display: flex;
+      flex-direction: column
+    }
+
+    .bcol h3 {
+      font-size: 10.5px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 8px;
+      text-align: center;
+      font-weight: 700
+    }
+
+    .bmatches {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 10px
+    }
+
+    .bm {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12.5px
+    }
+
+    .bm.live {
+      border-color: var(--pitch);
+      box-shadow: 0 0 0 1px var(--pitch)
+    }
+
+    .brow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+      min-width: 0
+    }
+
+    .brow img {
+      width: 16px;
+      height: 16px;
+      object-fit: contain;
+      flex: none
+    }
+
+    .brow .bn {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .brow.winner .bn {
+      font-weight: 700
+    }
+
+    .brow.loser {
+      color: var(--muted)
+    }
+
+    .brow .bscore {
+      margin-left: auto;
+      font-weight: 700
+    }
+
+    .brow.tbd {
+      color: var(--muted);
+      font-style: italic
+    }
+
+    .bmeta {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 5px;
+      border-top: 1px dashed var(--line);
+      padding-top: 5px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px
+    }
+
+    .bmeta .blive {
+      color: var(--pitch);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em
+    }
+
+    .bronze {
+      margin-top: 18px;
+      max-width: 260px
+    }
+
+    footer {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 0 14px 40px;
+      font-size: 12px;
+      color: var(--muted)
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="wrap">
-    <div class="eyebrow">World Cup 2026 &middot; 8 managers &middot; 48 teams &middot; <span id="phase">&hellip;</span></div>
-    <h1 class="display">The World Cup Pool</h1>
-    <div class="headmeta">
-      <span id="updated">Loading&hellip;</span>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">World Cup 2026 &middot; 8 managers &middot; 48 teams &middot; <span
+          id="phase">&hellip;</span></div>
+      <h1 class="display">The World Cup Pool</h1>
+      <div class="headmeta">
+        <span id="updated">Loading&hellip;</span>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<nav><div class="tabs" role="tablist">
-  <button class="tab" role="tab" aria-selected="true" data-panel="panel-lb">Leaderboard</button>
-  <button class="tab" role="tab" aria-selected="false" data-panel="panel-matches">Matches</button>
-  <button class="tab" role="tab" aria-selected="false" data-panel="panel-groups">Groups</button>
-  <button class="tab" role="tab" aria-selected="false" data-panel="panel-bracket">Bracket</button>
-</div></nav>
+  <nav>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-panel="panel-lb">Leaderboard</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="panel-matches">Matches</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="panel-groups">Groups</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="panel-bracket">Bracket</button>
+    </div>
+  </nav>
 
-<main>
-  <div id="setupNotice" class="notice hidden">
-    <strong>Almost there.</strong> Open this file and set <code>CONFIG.WORKER_URL</code> to your
-    Cloudflare Worker address (see README.md). The page will load live data once it's set.
-  </div>
-  <div id="errNotice" class="notice hidden"></div>
+  <main>
+    <div id="setupNotice" class="notice hidden">
+      <strong>Almost there.</strong> Open this file and set <code>CONFIG.WORKER_URL</code> to your
+      Cloudflare Worker address (see README.md). The page will load live data once it's set.
+    </div>
+    <div id="errNotice" class="notice hidden"></div>
 
-  <section id="panel-lb" role="tabpanel"></section>
-  <section id="panel-matches" role="tabpanel" class="hidden"></section>
-  <section id="panel-groups" role="tabpanel" class="hidden"></section>
-  <section id="panel-bracket" role="tabpanel" class="hidden"></section>
-</main>
+    <section id="panel-lb" role="tabpanel"></section>
+    <section id="panel-matches" role="tabpanel" class="hidden"></section>
+    <section id="panel-groups" role="tabpanel" class="hidden"></section>
+    <section id="panel-bracket" role="tabpanel" class="hidden"></section>
+  </main>
 
-<footer>Scoring: group stage 3/win &middot; 1/draw &mdash; knockouts 3 (R32), 6 (R16), 9 (QF), 12 (SF), 15 (Final). Extra-time and penalty wins count.
-Times shown in your local timezone. Data via football-data.org, refreshed about once a minute.</footer>
+  <footer>Scoring: group stage 3/win &middot; 1/draw &mdash; knockouts 3 (R32), 6 (R16), 9 (QF), 12 (SF), 15 (Final).
+    Extra-time and penalty wins count.
+    Times shown in your local timezone. Data via football-data.org, refreshed about once a minute.</footer>
 
-<script>
-/* ============================ CONFIG ============================ */
-const CONFIG = {
-  WORKER_URL: "https://wc-pool.french11728.workers.dev",            // e.g. "https://wc-pool.yourname.workers.dev"  (no trailing slash)
-  REFRESH_SECONDS: 90,
-  // Points awarded to a team's owner, by stage. Knockout games always produce a
-  // winner (extra time / penalties count as a win). Draws only exist in the group stage.
-  SCORING: {
-    GROUP_STAGE:    { win: 3,  draw: 1 },
-    LAST_32:        { win: 3 },
-    LAST_16:        { win: 6 },
-    QUARTER_FINALS: { win: 9 },
-    SEMI_FINALS:    { win: 12 },
-    THIRD_PLACE:    { win: 0 },   // bronze match — set this if your pool counts it
-    FINAL:          { win: 15 },
-  },
-};
-
-const OWNERS = {
-  "France":"Miggy","United States":"Miggy","Mexico":"Miggy","Egypt":"Miggy","Algeria":"Miggy","Haiti":"Miggy",
-  "Spain":"Chase","Norway":"Chase","Switzerland":"Chase","Bosnia":"Chase","DR Congo":"Chase","Jordan":"Chase",
-  "England":"Murphy","Senegal":"Murphy","Scotland":"Murphy","Iran":"Murphy","Iraq":"Murphy","Uruguay":"Murphy",
-  "Brazil":"Friedman","Ecuador":"Friedman","Croatia":"Friedman","Paraguay":"Friedman","Australia":"Friedman","Curacao":"Friedman",
-  "Argentina":"Schif","Colombia":"Schif","Canada":"Schif","South Korea":"Schif","Tunisia":"Schif","Uzbekistan":"Schif",
-  "Portugal":"Michelini","Japan":"Michelini","Turkiye":"Michelini","Austria":"Michelini","Cape Verde":"Michelini","Saudi Arabia":"Michelini",
-  "Germany":"Dan","Sweden":"Dan","Ghana":"Dan","Qatar":"Dan","New Zealand":"Dan","Morocco":"Dan",
-  "Netherlands":"Sovel","Belgium":"Sovel","Czech Republic":"Sovel","Ivory Coast":"Sovel","South Africa":"Sovel","Panama":"Sovel",
-};
-
-/* API names -> our names. Keys are normalized (lowercase, no accents/punct). */
-const ALIASES = {
-  "korea republic":"South Korea","south korea":"South Korea",
-  "czechia":"Czech Republic","czech republic":"Czech Republic",
-  "bosnia and herzegovina":"Bosnia","bosnia herzegovina":"Bosnia",
-  "turkiye":"Turkiye","turkey":"Turkiye",
-  "cote divoire":"Ivory Coast","ivory coast":"Ivory Coast",
-  "ir iran":"Iran","iran":"Iran",
-  "cabo verde":"Cape Verde","cape verde":"Cape Verde","cape verde islands":"Cape Verde",
-  "dr congo":"DR Congo","congo dr":"DR Congo","democratic republic of the congo":"DR Congo",
-  "usa":"United States","united states":"United States","united states of america":"United States",
-  "netherlands":"Netherlands","holland":"Netherlands",
-};
-/* ================================================================ */
-
-const $ = (s)=>document.querySelector(s);
-const norm = (s)=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-                   .replace(/[^a-z ]/g,"").replace(/\s+/g," ").trim();
-function ourName(apiName){
-  const n = norm(apiName);
-  if (ALIASES[n]) return ALIASES[n];
-  for (const t of Object.keys(OWNERS)) if (norm(t)===n) return t;
-  for (const t of Object.keys(OWNERS)) if (n.includes(norm(t))||norm(t).includes(n)) return t;
-  return apiName; // unmapped: shown without an owner
-}
-const ownerOf = (apiName)=>OWNERS[ourName(apiName)] || null;
-
-let crests = {};   // ourName -> crest url
-let timer = null;
-let countdown = null;
-
-document.querySelectorAll(".tab").forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected", b===btn));
-    document.querySelectorAll("[role=tabpanel]").forEach(p=>p.classList.toggle("hidden", p.id!==btn.dataset.panel));
-  });
-});
-
-const STAGE_LABEL = {LAST_32:"Round of 32 · 3 pts", LAST_16:"Round of 16 · 6 pts",
-  QUARTER_FINALS:"Quarterfinal · 9 pts", SEMI_FINALS:"Semifinal · 12 pts",
-  THIRD_PLACE:"Third place", FINAL:"Final · 15 pts"};
-
-const KO_ORDER = ["LAST_32","LAST_16","QUARTER_FINALS","SEMI_FINALS","FINAL"];
-const PHASE_LABEL = {GROUP_STAGE:"Group stage", LAST_32:"Round of 32", LAST_16:"Round of 16",
-  QUARTER_FINALS:"Quarterfinals", SEMI_FINALS:"Semifinals", THIRD_PLACE:"Third place", FINAL:"The Final"};
-
-function setPhase(matches){
-  for (const st of ["GROUP_STAGE",...KO_ORDER.slice(0,4),"THIRD_PLACE","FINAL"]){
-    if (matches.some(m=>m.stage===st && m.status!=="FINISHED")){
-      $("#phase").textContent = PHASE_LABEL[st]; return;
-    }
-  }
-  $("#phase").textContent = matches.length ? "Tournament complete" : "";
-}
-
-function bracketCard(m){
-  const live = LIVE.has(m.status), done = m.status==="FINISHED";
-  const row = (t, side)=>{
-    if (!t || !t.name) return `<div class="brow tbd"><span class="bn">To be decided</span></div>`;
-    const name = ourName(t.name), o = ownerOf(t.name);
-    const won = done && m.score?.winner === (side==="h" ? "HOME_TEAM" : "AWAY_TEAM");
-    const lost = done && !won && m.score?.winner !== "DRAW";
-    const sc = (live||done) ? `<span class="bscore num">${m.score?.fullTime?.[side==="h"?"home":"away"] ?? 0}</span>` : "";
-    return `<div class="brow ${won?"winner":""} ${lost?"loser":""}">${crestImg(name,16)}
-      <span class="bn">${name}${o?` <span class="owner">${o}</span>`:""}</span>${sc}</div>`;
-  };
-  const when = new Date(m.utcDate).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
-  const meta = live ? `<span class="blive">Live</span><span>${when}</span>`
-             : done ? `<span>Full time${m.score?.duration==="PENALTY_SHOOTOUT"?" (pens)":m.score?.duration==="EXTRA_TIME"?" (aet)":""}</span>`
-             : `<span class="num">${when}</span>`;
-  return `<div class="bm ${live?"live":""}">${row(m.homeTeam,"h")}${row(m.awayTeam,"a")}
-    <div class="bmeta">${meta}</div></div>`;
-}
-
-function renderBracket(matches){
-  const ko = matches.filter(m=>KO_ORDER.includes(m.stage) || m.stage==="THIRD_PLACE")
-                    .sort((a,b)=> new Date(a.utcDate)-new Date(b.utcDate));
-  if (!ko.length){
-    $("#panel-bracket").innerHTML = `<p class="muted">The bracket appears once the knockout
-      fixtures are in the schedule — slots fill in automatically as the group stage wraps up.</p>`;
-    return;
-  }
-  const cols = KO_ORDER.map(st=>{
-    const ms = ko.filter(m=>m.stage===st);
-    return ms.length ? `<div class="bcol"><h3>${STAGE_LABEL[st]}</h3>
-      <div class="bmatches">${ms.map(bracketCard).join("")}</div></div>` : "";
-  }).join("");
-  const bronze = ko.filter(m=>m.stage==="THIRD_PLACE").map(bracketCard).join("");
-  $("#panel-bracket").innerHTML = `<div class="bracket">${cols}</div>` +
-    (bronze ? `<div class="bronze"><h2 class="section">Third place match</h2>${bronze}</div>` : "") +
-    `<p class="muted" style="margin-top:10px">Matchups fill in as each round is decided. Cards are
-     ordered by kickoff within each round. Swipe sideways to follow the path to the final.</p>`;
-}
-
-async function getJSON(path){
-  const r = await fetch(CONFIG.WORKER_URL + path);
-  if (!r.ok) throw new Error(`${path} returned ${r.status}`);
-  return r.json();
-}
-
-async function load(){
-  clearInterval(countdown);
-  if (!CONFIG.WORKER_URL){ $("#setupNotice").classList.remove("hidden"); $("#updated").textContent="Not connected"; return; }
-  $("#setupNotice").classList.add("hidden");
-  $("#updated").textContent = "Refreshing…";
-  try{
-    const [matchData, standData] = await Promise.all([getJSON("/matches"), getJSON("/standings")]);
-    const matches = (matchData.matches||[]);
-    matches.forEach(m=>{
-      for (const t of [m.homeTeam, m.awayTeam]){
-        if (t && t.name && t.crest) crests[ourName(t.name)] = t.crest;
-      }
-    });
-    renderLeaderboard(matches, standData.standings||[]);
-    renderMatches(matches);
-    renderGroups(standData.standings||[]);
-    renderBracket(matches);
-    setPhase(matches);
-    $("#errNotice").classList.add("hidden");
-    const base = "Updated " + new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
-    let secsLeft = CONFIG.REFRESH_SECONDS;
-    const fmt = (s) => `${s}s`;
-    $("#updated").textContent = `${base} · refreshing in ${fmt(secsLeft)}`;
-    countdown = setInterval(()=>{
-      secsLeft--;
-      if (secsLeft <= 0){ clearInterval(countdown); $("#updated").textContent = "Refreshing…"; return; }
-      $("#updated").textContent = `${base} · refreshing in ${fmt(secsLeft)}`;
-    }, 1000);
-  }catch(e){
-    clearInterval(countdown);
-    $("#errNotice").textContent = "Couldn't load data (" + e.message + "). Check that the Worker URL is right and the Worker is deployed. Retrying automatically.";
-    $("#errNotice").classList.remove("hidden");
-    $("#updated").textContent = "Connection problem";
-  }
-  clearTimeout(timer);
-  timer = setTimeout(load, CONFIG.REFRESH_SECONDS*1000);
-}
-
-const LIVE = new Set(["IN_PLAY","PAUSED","LIVE"]);
-
-function crestImg(name, size){
-  const u = crests[name];
-  return u ? `<img src="${u}" alt="" width="${size}" height="${size}" loading="lazy">` : "";
-}
-
-function renderLeaderboard(matches, standings){
-  const people = {};
-  for (const t of Object.keys(OWNERS)){
-    const p = OWNERS[t];
-    (people[p] ||= {name:p, pts:0, w:0, d:0, l:0, teams:{}}).teams[t] = {w:0,d:0,l:0,pts:0,live:false};
-  }
-
-  // Use standings for accurate group-stage W/D/L and points (matches endpoint lags)
-  for (const stand of standings){
-    if (stand.type !== "TOTAL") continue;
-    for (const row of (stand.table||[])){
-      const t = ourName(row.team?.name||"");
-      const o = OWNERS[t];
-      if (!o) continue;
-      const rec = people[o].teams[t];
-      rec.w = row.won || 0;
-      rec.d = row.draw || 0;
-      rec.l = row.lost || 0;
-      rec.pts = row.points || 0;
-      people[o].w += rec.w;
-      people[o].d += rec.d;
-      people[o].l += rec.l;
-      people[o].pts += rec.pts;
-    }
-  }
-
-  // Use matches only to detect live status and score knockout rounds
-  for (const m of matches){
-    const rules = CONFIG.SCORING[m.stage];
-    if (!rules) continue;
-    const h = ourName(m.homeTeam?.name||""), a = ourName(m.awayTeam?.name||"");
-    if (LIVE.has(m.status)){
-      if (OWNERS[h]) people[OWNERS[h]].teams[h].live = true;
-      if (OWNERS[a]) people[OWNERS[a]].teams[a].live = true;
-    }
-    if (m.stage === "GROUP_STAGE" || m.status !== "FINISHED") continue;
-    const winner = m.score?.winner;
-    const apply = (team, res)=>{
-      const o = OWNERS[team]; if (!o) return;
-      const rec = people[o].teams[team];
-      rec[res]++; people[o][res]++;
-      const gained = res==="w" ? (rules.win||0) : res==="d" ? (rules.draw||0) : 0;
-      rec.pts += gained; people[o].pts += gained;
+  <script>
+    /* ============================ CONFIG ============================ */
+    const CONFIG = {
+      WORKER_URL: "https://wc-pool.french11728.workers.dev",            // e.g. "https://wc-pool.yourname.workers.dev"  (no trailing slash)
+      REFRESH_SECONDS: 90,
+      // Points awarded to a team's owner, by stage. Knockout games always produce a
+      // winner (extra time / penalties count as a win). Draws only exist in the group stage.
+      SCORING: {
+        GROUP_STAGE: { win: 3, draw: 1 },
+        LAST_32: { win: 3 },
+        LAST_16: { win: 6 },
+        QUARTER_FINALS: { win: 9 },
+        SEMI_FINALS: { win: 12 },
+        THIRD_PLACE: { win: 0 },   // bronze match — set this if your pool counts it
+        FINAL: { win: 15 },
+      },
     };
-    if (winner === "DRAW"){ apply(h,"d"); apply(a,"d"); }
-    else if (winner === "HOME_TEAM"){ apply(h,"w"); apply(a,"l"); }
-    else if (winner === "AWAY_TEAM"){ apply(a,"w"); apply(h,"l"); }
-  }
 
-  const ranked = Object.values(people).sort((x,y)=> y.pts-x.pts || y.w-x.w || x.name.localeCompare(y.name));
-  const top = ranked[0]?.pts || 0;
-  let displayRank = 1;
-  $("#panel-lb").innerHTML = ranked.map((p,i)=>{
-    if (i > 0 && p.pts < ranked[i-1].pts) displayRank = i + 1;
-    const rank = displayRank;
-    const leader = p.pts===top && top>0;
-    const chips = Object.entries(p.teams).map(([t,r])=>
-      `<span class="chip ${r.live?"playing":""}">${crestImg(t,18)}${t}
+    const OWNERS = {
+      "France": "Miggy", "United States": "Miggy", "Mexico": "Miggy", "Egypt": "Miggy", "Algeria": "Miggy", "Haiti": "Miggy",
+      "Spain": "Chase", "Norway": "Chase", "Switzerland": "Chase", "Bosnia": "Chase", "DR Congo": "Chase", "Jordan": "Chase",
+      "England": "Murphy", "Senegal": "Murphy", "Scotland": "Murphy", "Iran": "Murphy", "Iraq": "Murphy", "Uruguay": "Murphy",
+      "Brazil": "Friedman", "Ecuador": "Friedman", "Croatia": "Friedman", "Paraguay": "Friedman", "Australia": "Friedman", "Curacao": "Friedman",
+      "Argentina": "Schif", "Colombia": "Schif", "Canada": "Schif", "South Korea": "Schif", "Tunisia": "Schif", "Uzbekistan": "Schif",
+      "Portugal": "Michelini", "Japan": "Michelini", "Turkiye": "Michelini", "Austria": "Michelini", "Cape Verde": "Michelini", "Saudi Arabia": "Michelini",
+      "Germany": "Dan", "Sweden": "Dan", "Ghana": "Dan", "Qatar": "Dan", "New Zealand": "Dan", "Morocco": "Dan",
+      "Netherlands": "Sovel", "Belgium": "Sovel", "Czech Republic": "Sovel", "Ivory Coast": "Sovel", "South Africa": "Sovel", "Panama": "Sovel",
+    };
+
+    /* API names -> our names. Keys are normalized (lowercase, no accents/punct). */
+    const ALIASES = {
+      "korea republic": "South Korea", "south korea": "South Korea",
+      "czechia": "Czech Republic", "czech republic": "Czech Republic",
+      "bosnia and herzegovina": "Bosnia", "bosnia herzegovina": "Bosnia",
+      "turkiye": "Turkiye", "turkey": "Turkiye",
+      "cote divoire": "Ivory Coast", "ivory coast": "Ivory Coast",
+      "ir iran": "Iran", "iran": "Iran",
+      "cabo verde": "Cape Verde", "cape verde": "Cape Verde", "cape verde islands": "Cape Verde",
+      "dr congo": "DR Congo", "congo dr": "DR Congo", "democratic republic of the congo": "DR Congo",
+      "usa": "United States", "united states": "United States", "united states of america": "United States",
+      "netherlands": "Netherlands", "holland": "Netherlands",
+    };
+    /* ================================================================ */
+
+    const $ = (s) => document.querySelector(s);
+    const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim();
+    function ourName(apiName) {
+      const n = norm(apiName);
+      if (ALIASES[n]) return ALIASES[n];
+      for (const t of Object.keys(OWNERS)) if (norm(t) === n) return t;
+      for (const t of Object.keys(OWNERS)) if (n.includes(norm(t)) || norm(t).includes(n)) return t;
+      return apiName; // unmapped: shown without an owner
+    }
+    const ownerOf = (apiName) => OWNERS[ourName(apiName)] || null;
+
+    let crests = {};   // ourName -> crest url
+    let timer = null;
+    let countdown = null;
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b === btn));
+        document.querySelectorAll("[role=tabpanel]").forEach(p => p.classList.toggle("hidden", p.id !== btn.dataset.panel));
+      });
+    });
+
+    const STAGE_LABEL = {
+      LAST_32: "Round of 32 · 3 pts", LAST_16: "Round of 16 · 6 pts",
+      QUARTER_FINALS: "Quarterfinal · 9 pts", SEMI_FINALS: "Semifinal · 12 pts",
+      THIRD_PLACE: "Third place", FINAL: "Final · 15 pts"
+    };
+
+    const KO_ORDER = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"];
+    const PHASE_LABEL = {
+      GROUP_STAGE: "Group stage", LAST_32: "Round of 32", LAST_16: "Round of 16",
+      QUARTER_FINALS: "Quarterfinals", SEMI_FINALS: "Semifinals", THIRD_PLACE: "Third place", FINAL: "The Final"
+    };
+
+    function setPhase(matches) {
+      for (const st of ["GROUP_STAGE", ...KO_ORDER.slice(0, 4), "THIRD_PLACE", "FINAL"]) {
+        if (matches.some(m => m.stage === st && m.status !== "FINISHED")) {
+          $("#phase").textContent = PHASE_LABEL[st]; return;
+        }
+      }
+      $("#phase").textContent = matches.length ? "Tournament complete" : "";
+    }
+
+    function bracketCard(m) {
+      const live = LIVE.has(m.status), done = m.status === "FINISHED";
+      const row = (t, side) => {
+        if (!t || !t.name) return `<div class="brow tbd"><span class="bn">To be decided</span></div>`;
+        const name = ourName(t.name), o = ownerOf(t.name);
+        const won = done && m.score?.winner === (side === "h" ? "HOME_TEAM" : "AWAY_TEAM");
+        const lost = done && !won && m.score?.winner !== "DRAW";
+        const sc = (live || done) ? `<span class="bscore num">${m.score?.fullTime?.[side === "h" ? "home" : "away"] ?? 0}</span>` : "";
+        return `<div class="brow ${won ? "winner" : ""} ${lost ? "loser" : ""}">${crestImg(name, 16)}
+      <span class="bn">${name}${o ? ` <span class="owner">${o}</span>` : ""}</span>${sc}</div>`;
+      };
+      const when = new Date(m.utcDate).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      const meta = live ? `<span class="blive">Live</span><span>${when}</span>`
+        : done ? `<span>Full time${m.score?.duration === "PENALTY_SHOOTOUT" ? " (pens)" : m.score?.duration === "EXTRA_TIME" ? " (aet)" : ""}</span>`
+          : `<span class="num">${when}</span>`;
+      return `<div class="bm ${live ? "live" : ""}">${row(m.homeTeam, "h")}${row(m.awayTeam, "a")}
+    <div class="bmeta">${meta}</div></div>`;
+    }
+
+    function renderBracket(matches) {
+      const ko = matches.filter(m => KO_ORDER.includes(m.stage) || m.stage === "THIRD_PLACE")
+        .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+      if (!ko.length) {
+        $("#panel-bracket").innerHTML = `<p class="muted">The bracket appears once the knockout
+      fixtures are in the schedule — slots fill in automatically as the group stage wraps up.</p>`;
+        return;
+      }
+      const cols = KO_ORDER.map(st => {
+        const ms = ko.filter(m => m.stage === st);
+        return ms.length ? `<div class="bcol"><h3>${STAGE_LABEL[st]}</h3>
+      <div class="bmatches">${ms.map(bracketCard).join("")}</div></div>` : "";
+      }).join("");
+      const bronze = ko.filter(m => m.stage === "THIRD_PLACE").map(bracketCard).join("");
+      $("#panel-bracket").innerHTML = `<div class="bracket">${cols}</div>` +
+        (bronze ? `<div class="bronze"><h2 class="section">Third place match</h2>${bronze}</div>` : "") +
+        `<p class="muted" style="margin-top:10px">Matchups fill in as each round is decided. Cards are
+     ordered by kickoff within each round. Swipe sideways to follow the path to the final.</p>`;
+    }
+
+    async function getJSON(path) {
+      const r = await fetch(CONFIG.WORKER_URL + path);
+      if (!r.ok) throw new Error(`${path} returned ${r.status}`);
+      return r.json();
+    }
+
+    async function load() {
+      clearInterval(countdown);
+      if (!CONFIG.WORKER_URL) { $("#setupNotice").classList.remove("hidden"); $("#updated").textContent = "Not connected"; return; }
+      $("#setupNotice").classList.add("hidden");
+      $("#updated").textContent = "Refreshing…";
+      try {
+        const [matchData, standData] = await Promise.all([getJSON("/matches"), getJSON("/standings")]);
+        const matches = (matchData.matches || []);
+        matches.forEach(m => {
+          for (const t of [m.homeTeam, m.awayTeam]) {
+            if (t && t.name && t.crest) crests[ourName(t.name)] = t.crest;
+          }
+        });
+        renderLeaderboard(matches, standData.standings || []);
+        renderMatches(matches);
+        renderGroups(standData.standings || []);
+        renderBracket(matches);
+        setPhase(matches);
+        $("#errNotice").classList.add("hidden");
+        const base = "Updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        let secsLeft = CONFIG.REFRESH_SECONDS;
+        const fmt = (s) => `${s}s`;
+        $("#updated").textContent = `${base} · refreshing in ${fmt(secsLeft)}`;
+        countdown = setInterval(() => {
+          secsLeft--;
+          if (secsLeft <= 0) { clearInterval(countdown); $("#updated").textContent = "Refreshing…"; return; }
+          $("#updated").textContent = `${base} · refreshing in ${fmt(secsLeft)}`;
+        }, 1000);
+      } catch (e) {
+        clearInterval(countdown);
+        $("#errNotice").textContent = "Couldn't load data (" + e.message + "). Check that the Worker URL is right and the Worker is deployed. Retrying automatically.";
+        $("#errNotice").classList.remove("hidden");
+        $("#updated").textContent = "Connection problem";
+      }
+      clearTimeout(timer);
+      timer = setTimeout(load, CONFIG.REFRESH_SECONDS * 1000);
+    }
+
+    const LIVE = new Set(["IN_PLAY", "PAUSED", "LIVE"]);
+
+    function crestImg(name, size) {
+      const u = crests[name];
+      return u ? `<img src="${u}" alt="" width="${size}" height="${size}" loading="lazy">` : "";
+    }
+
+    function renderLeaderboard(matches, standings) {
+      const people = {};
+      for (const t of Object.keys(OWNERS)) {
+        const p = OWNERS[t];
+        (people[p] ||= { name: p, pts: 0, w: 0, d: 0, l: 0, teams: {} }).teams[t] = { w: 0, d: 0, l: 0, pts: 0, live: false };
+      }
+
+      // Use standings for accurate group-stage W/D/L and points (matches endpoint lags)
+      for (const stand of standings) {
+        if (stand.type !== "TOTAL") continue;
+        for (const row of (stand.table || [])) {
+          const t = ourName(row.team?.name || "");
+          const o = OWNERS[t];
+          if (!o) continue;
+          const rec = people[o].teams[t];
+          rec.w = row.won || 0;
+          rec.d = row.draw || 0;
+          rec.l = row.lost || 0;
+          rec.pts = row.points || 0;
+          people[o].w += rec.w;
+          people[o].d += rec.d;
+          people[o].l += rec.l;
+          people[o].pts += rec.pts;
+        }
+      }
+
+      // Use matches only to detect live status and score knockout rounds
+      for (const m of matches) {
+        const rules = CONFIG.SCORING[m.stage];
+        if (!rules) continue;
+        const h = ourName(m.homeTeam?.name || ""), a = ourName(m.awayTeam?.name || "");
+        if (LIVE.has(m.status)) {
+          if (OWNERS[h]) people[OWNERS[h]].teams[h].live = true;
+          if (OWNERS[a]) people[OWNERS[a]].teams[a].live = true;
+        }
+        if (m.stage === "GROUP_STAGE" || m.status !== "FINISHED") continue;
+        const winner = m.score?.winner;
+        const apply = (team, res) => {
+          const o = OWNERS[team]; if (!o) return;
+          const rec = people[o].teams[team];
+          rec[res]++; people[o][res]++;
+          const gained = res === "w" ? (rules.win || 0) : res === "d" ? (rules.draw || 0) : 0;
+          rec.pts += gained; people[o].pts += gained;
+        };
+        if (winner === "DRAW") { apply(h, "d"); apply(a, "d"); }
+        else if (winner === "HOME_TEAM") { apply(h, "w"); apply(a, "l"); }
+        else if (winner === "AWAY_TEAM") { apply(a, "w"); apply(h, "l"); }
+      }
+
+      const ranked = Object.values(people).sort((x, y) => y.pts - x.pts || y.w - x.w || x.name.localeCompare(y.name));
+      const top = ranked[0]?.pts || 0;
+      let displayRank = 1;
+      $("#panel-lb").innerHTML = ranked.map((p, i) => {
+        if (i > 0 && p.pts < ranked[i - 1].pts) displayRank = i + 1;
+        const rank = displayRank;
+        const leader = p.pts === top && top > 0;
+        const chips = Object.entries(p.teams).map(([t, r]) =>
+          `<span class="chip ${r.live ? "playing" : ""}">${crestImg(t, 18)}${t}
         <span class="cpts num">${r.pts}</span><span class="muted num">${r.w}-${r.d}-${r.l}</span></span>`).join("");
-    return `<div class="lb-card ${leader?"leader":""}">
+        return `<div class="lb-card ${leader ? "leader" : ""}">
       <div class="lb-rank display num">${rank}</div>
       <div><div class="lb-name display">${p.name}</div>
         <div class="lb-record num">${p.w} W &middot; ${p.d} D &middot; ${p.l} L</div></div>
       <div class="lb-pts"><div class="pts display num">${p.pts}</div><div class="lbl">pts</div></div>
-      ${leader?`<div class="leader-tag">&#9733; Top of the table</div>`:""}
+      ${leader ? `<div class="leader-tag">&#9733; Top of the table</div>` : ""}
       <div class="chips">${chips}</div>
     </div>`;
-  }).join("") || `<p class="muted">No data yet.</p>`;
-}
+      }).join("") || `<p class="muted">No data yet.</p>`;
+    }
 
-function matchRow(m){
-  const h = ourName(m.homeTeam?.name||"TBD"), a = ourName(m.awayTeam?.name||"TBD");
-  const oh = ownerOf(m.homeTeam?.name||""), oa = ownerOf(m.awayTeam?.name||"");
-  const live = LIVE.has(m.status), done = m.status==="FINISHED";
-  const center = done && m.score?.winner === null
-    ? `<div class="ko num">Scores updating…</div>`
-    : (live||done)
-    ? `<div class="score display num">${m.score?.fullTime?.home ?? 0}&ndash;${m.score?.fullTime?.away ?? 0}</div>`
-    : `<div class="ko num">${new Date(m.utcDate).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}</div>`;
-  const stageTag = STAGE_LABEL[m.stage] ? `<span class="badge ft">${STAGE_LABEL[m.stage]}</span>` : "";
-  const inner = (live ? `<span class="badge live">Live</span>` : done ? `<span class="badge ft">Full time</span>` : "") + stageTag;
-  const badge = inner ? `<div class="tags">${inner}</div>` : "";
-  return `<div class="match">
-    <div class="team">${crestImg(h,24)}<span><span class="tname">${h}</span>${oh?` <span class="owner">${oh}</span>`:""}</span></div>
+    function matchRow(m) {
+      const h = ourName(m.homeTeam?.name || "TBD"), a = ourName(m.awayTeam?.name || "TBD");
+      const oh = ownerOf(m.homeTeam?.name || ""), oa = ownerOf(m.awayTeam?.name || "");
+      const live = LIVE.has(m.status), done = m.status === "FINISHED";
+      const center = done && m.score?.winner === null
+        ? `<div class="ko num">Scores updating…</div>`
+        : (live || done)
+          ? `<div class="score display num">${m.score?.fullTime?.home ?? 0}&ndash;${m.score?.fullTime?.away ?? 0}</div>`
+          : `<div class="ko num">${new Date(m.utcDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>`;
+      const stageTag = STAGE_LABEL[m.stage] ? `<span class="badge ft">${STAGE_LABEL[m.stage]}</span>` : "";
+      const inner = (live ? `<span class="badge live">Live</span>` : done ? `<span class="badge ft">Full time</span>` : "") + stageTag;
+      const badge = inner ? `<div class="tags">${inner}</div>` : "";
+      return `<div class="match">
+    <div class="team">${crestImg(h, 24)}<span><span class="tname">${h}</span>${oh ? ` <span class="owner">${oh}</span>` : ""}</span></div>
     ${center}
-    <div class="team away"><span><span class="tname">${a}</span>${oa?` <span class="owner">${oa}</span>`:""}</span>${crestImg(a,24)}</div>
+    <div class="team away"><span><span class="tname">${a}</span>${oa ? ` <span class="owner">${oa}</span>` : ""}</span>${crestImg(a, 24)}</div>
     ${badge}
   </div>`;
-}
-
-function renderMatches(matches){
-  const sorted = [...matches].sort((x,y)=> new Date(x.utcDate)-new Date(y.utcDate));
-  const live = sorted.filter(m=>LIVE.has(m.status));
-  const upcoming = sorted.filter(m=>!LIVE.has(m.status) && m.status!=="FINISHED").slice(0,16);
-  const finished = sorted.filter(m=>m.status==="FINISHED").reverse();
-
-  const byDate = (list)=>{
-    let html="", last="";
-    for (const m of list){
-      const d = new Date(m.utcDate).toLocaleDateString([], {weekday:"short", month:"short", day:"numeric"});
-      if (d!==last){ html += `<div class="datehead">${d}</div>`; last=d; }
-      html += matchRow(m);
     }
-    return html;
-  };
 
-  $("#panel-matches").innerHTML =
-    (live.length ? `<h2 class="section">Live now</h2>${live.map(matchRow).join("")}` : "") +
-    `<h2 class="section">Up next</h2>${byDate(upcoming) || `<p class="muted">No upcoming matches.</p>`}` +
-    `<h2 class="section">Results</h2>${byDate(finished) || `<p class="muted">No results yet &mdash; first kickoff coming up.</p>`}`;
-}
+    function renderMatches(matches) {
+      const sorted = [...matches].sort((x, y) => new Date(x.utcDate) - new Date(y.utcDate));
+      const live = sorted.filter(m => LIVE.has(m.status));
+      const upcoming = sorted.filter(m => !LIVE.has(m.status) && m.status !== "FINISHED").slice(0, 16);
+      const finished = sorted.filter(m => m.status === "FINISHED").reverse();
 
-function renderGroups(standings){
-  const cards = standings.filter(s=>s.type==="TOTAL").map(s=>{
-    const rows = (s.table||[]).map(r=>{
-      const t = ourName(r.team?.name||""); const o = ownerOf(r.team?.name||"");
-      return `<tr class="${r.position<=2?"q":""}">
+      const byDate = (list) => {
+        let html = "", last = "";
+        for (const m of list) {
+          const d = new Date(m.utcDate).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+          if (d !== last) { html += `<div class="datehead">${d}</div>`; last = d; }
+          html += matchRow(m);
+        }
+        return html;
+      };
+
+      $("#panel-matches").innerHTML =
+        (live.length ? `<h2 class="section">Live now</h2>${live.map(matchRow).join("")}` : "") +
+        `<h2 class="section">Up next</h2>${byDate(upcoming) || `<p class="muted">No upcoming matches.</p>`}` +
+        `<h2 class="section">Results</h2>${byDate(finished) || `<p class="muted">No results yet &mdash; first kickoff coming up.</p>`}`;
+    }
+
+    function renderGroups(standings) {
+      const cards = standings.filter(s => s.type === "TOTAL").map(s => {
+        const rows = (s.table || []).map(r => {
+          const t = ourName(r.team?.name || ""); const o = ownerOf(r.team?.name || "");
+          return `<tr class="${r.position <= 2 ? "q" : ""}">
         <td class="num">${r.position}</td>
-        <td class="tcol">${crestImg(t,16)}${t}${o?` <span class="owner">${o}</span>`:""}</td>
+        <td class="tcol">${crestImg(t, 16)}${t}${o ? ` <span class="owner">${o}</span>` : ""}</td>
         <td class="num">${r.playedGames}</td><td class="num">${r.won}</td><td class="num">${r.draw}</td>
         <td class="num">${r.lost}</td><td class="num">${r.goalDifference}</td><td class="num"><strong>${r.points}</strong></td>
       </tr>`;
-    }).join("");
-    return `<div class="gcard"><h3 class="display">${(s.group||"").replace("GROUP_","Group ")}</h3>
+        }).join("");
+        return `<div class="gcard"><h3 class="display">${(s.group || "").replace("GROUP_", "Group ")}</h3>
       <table><thead><tr><th></th><th class="tcol">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
-  }).join("");
-  $("#panel-groups").innerHTML = cards
-    ? `<div class="groups">${cards}</div><p class="muted" style="margin-top:10px">Shaded rows are on course to qualify (top two; best third-placed teams also advance).</p>`
-    : `<p class="muted">Standings appear once the first matches are played.</p>`;
-}
+      }).join("");
+      $("#panel-groups").innerHTML = cards
+        ? `<div class="groups">${cards}</div><p class="muted" style="margin-top:10px">Shaded rows are on course to qualify (top two; best third-placed teams also advance).</p>`
+        : `<p class="muted">Standings appear once the first matches are played.</p>`;
+    }
 
-load();
-</script>
+    load();
+  </script>
 </body>
+
 </html>
